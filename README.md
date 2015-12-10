@@ -1,5 +1,9 @@
 # Splunk_BucketCleaner.py
 
+This script is not offically supported by Splunk IN ANY WAY, it's something I developed internally to solve a problem.
+Do not rely on this script without talking to me.  Do not rely on this sript without talking to me.
+This script is not offically supported by Splunk IN ANY WAY
+
 Steps:
 1. Edit a file (the example uses a file called servers.list) with names/ip's of all the indexers you are interested in tracking
 2. run the script from some node like this:
