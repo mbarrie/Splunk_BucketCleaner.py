@@ -72,7 +72,10 @@ def getBucketsFromServer(host,idxName, basedir,dbList,searchFrozenOnly):
 	verbose_message(callString)
 	del_p = subprocess.Popen(callString,shell=True , stdout=subprocess.PIPE)
 	out,err = del_p.communicate()
-	retList = out.splitlines()
+	retList = []
+        for bucket in out.splitlines():
+            bucket = host + "|" + idxName + "|" + bucket
+            retList.append(bucket)
 	verbose_message(retList)
 	return retList
 
@@ -99,10 +102,10 @@ def bucket_compare(x, y):
 
 #Then compare the loccal_id
 def local_id_compare(x, y):
-	p = re.compile('([^_]+)_([^_]+)_([^_]+)_([^_]+)_([^_]+)', re.IGNORECASE)
+	p = re.compile('.+\|.+\|([^_]+)_([^_]+)_([^_]+)_([^_]+)_([^_]+)', re.IGNORECASE)
 	m = p.match(x)
 	n = p.match(y)
-	#print "%s %s" %(m.group(4),n.group(4))
+	#print "group 4: %s %s" %(m.group(4),n.group(4))
 	if m.group(4) == n.group(4):
 		return prefix_compare(x,y)
 	if m.group(4) > n.group(4):
@@ -112,12 +115,12 @@ def local_id_compare(x, y):
 
 #Finally compare the prefix (need to lop off the path first)
 def prefix_compare(x, y):
-	p = re.compile('([^_]+)_([^_]+)_([^_]+)_([^_]+)_([^_]+)', re.IGNORECASE)
+	p = re.compile('.+\|.+\|([^_]+)_([^_]+)_([^_]+)_([^_]+)_([^_]+)', re.IGNORECASE)
 	m = p.match(x)
 	n = p.match(y)
 	left = m.group(1)[-2:]
 	right = n.group(1)[-2:]
-	# print "%s %s" %(left,right)
+	#print "%s %s" %(left,right)
 	if (left == "db" and right == "db"):
 		return 0;
 	if (left =="rb" and  right == "db"):
@@ -145,21 +148,23 @@ for idxName in indexList:
 			servers = servers + getBucketsFromServer_test(host,idxName,basedir, debugtest)
 	servers.sort(cmp=bucket_compare)
 	prevSubString = None
-	delete_bucket_count = 0
 	bucket_count = 0
 	
 	for p in servers:
-		thisSubStr=p[p.find("_")+1:]
+		#thisSubStr=p[p.find("_")+1:]
+                thisSubStr=p[p.rfind("|")+1:]
+                thisSubStr=thisSubStr[thisSubStr.find("_")+1:]
+                #print thisSubStr
 		if prevSubString != thisSubStr or prevSubString is None:
 			if reverse == False:
 				print "%s" % (p)
 				bucket_count += 1
 		else:
-			delete_bucket_count += 1
 			bucket_count += 1
 			basefile = p
 			if reverse == True:
 				print "%s" % (p)
 
-		prevSubString=p[p.find("_")+1:]
+		prevSubString=p[p.rfind("|")+1:]
+                prevSubString=prevSubString[prevSubString.find("_")+1:]
 
